@@ -13,7 +13,7 @@ class Day1Sketch(vsketch.SketchClass):
     num_layers = vsketch.Param(1)
     num_steps = vsketch.Param(50)
     radius = vsketch.Param(1.0, decimals=3, unit="in")
-    fill = vsketch.Param(False)
+    fill_probability = vsketch.Param(0.01)
 
     def random_point(self, vsk: vsketch.Vsketch):
         return Point(vsk.random(0, self.width), vsk.random(0, self.height))
@@ -35,8 +35,10 @@ class Day1Sketch(vsketch.SketchClass):
 
             layer = layers[int(vsk.random(0, len(layers)))]
             vsk.stroke(layer)
-            if self.fill:
+            if vsk.random(0, 1) < self.fill_probability:
                 vsk.fill(layer)
+            else:
+                vsk.noFill()
             start = self.random_point(vsk)
             vsk.square(start.x, start.y, self.radius, mode="radius")
 
