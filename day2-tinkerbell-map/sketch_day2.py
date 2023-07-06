@@ -1,6 +1,7 @@
 import vsketch
 from shapely.geometry import Point
 
+
 class Day2Sketch(vsketch.SketchClass):
     # Sketch parameters:
     debug = vsketch.Param(False)
@@ -10,24 +11,37 @@ class Day2Sketch(vsketch.SketchClass):
     landscape = vsketch.Param(True)
     pen_width = vsketch.Param(0.7, decimals=3, min_value=1e-10, unit="mm")
     num_layers = vsketch.Param(1)
-    # radius = vsketch.Param(1.0, decimals=3, unit="in")
+    num_steps = vsketch.Param(100)
+    a = vsketch.Param(0.9)
+    b = vsketch.Param(-0.6013)
+    c = vsketch.Param(2.0)
+    d = vsketch.Param(0.5)
+    x_0 = vsketch.Param(-0.72)
+    y_0 = vsketch.Param(-0.64)
 
     def random_point(self, vsk: vsketch.Vsketch):
         return Point(vsk.random(0, self.width), vsk.random(0, self.height))
 
     def draw(self, vsk: vsketch.Vsketch) -> None:
-        vsk.size(f"{self.height}x{self.width}", landscape=self.landscape, center=False)
+        vsk.size(f"{self.height}x{self.width}",
+                 landscape=self.landscape,
+                 center=True)
         self.width = self.width - 2 * self.margin
         self.height = self.height - 2 * self.margin
         vsk.translate(self.margin, self.margin)
         vsk.penWidth(f"{self.pen_width}")
 
-        # implement your sketch here
-        # layers = [1 + i for i in range(self.num_layers)]
-        # layer = layers[int(vsk.random(0, len(layers)))]
-        # vsk.stroke(layer)
-        # vsk.fill(layer)
-        # vsk.circle(0, 0, self.radius, mode="radius")
+        layers = [1 + i for i in range(self.num_layers)]
+        f = lambda x: (x + 1) * min(self.width, self.height) / 2
+        x = self.x_0
+        y = self.y_0
+        for step in range(self.num_steps):
+            layer = layers[int(vsk.random(0, len(layers)))]
+            vsk.stroke(layer)
+            vsk.point(f(x), f(y))
+            x, y = x * x - y * y + self.a * x + self.b * y, 2 * x * y + self.c * x + self.d * y
+
+            print(x, y)
 
     def finalize(self, vsk: vsketch.Vsketch) -> None:
         vsk.vpype("linemerge linesimplify reloop linesort")
