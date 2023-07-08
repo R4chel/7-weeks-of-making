@@ -38,7 +38,11 @@ class Day3Sketch(vsketch.SketchClass):
                     vsk.fill(layer)
                 else:
                     vsk.noFill()
+                vsk.pushMatrix()
+                vsk.rotate(angle=vsk.random(-1, 1) * vsk.random(x + y),
+                           degrees=True)
                 vsk.square(x, y, self.radius)
+                vsk.popMatrix()
 
     def finalize(self, vsk: vsketch.Vsketch) -> None:
         vsk.vpype("linemerge linesimplify reloop linesort")
