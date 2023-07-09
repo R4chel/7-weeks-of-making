@@ -36,14 +36,14 @@ class Day4Sketch(vsketch.SketchClass):
         ]
         pts = []
         for theta in thetas:
-            sinh = np.sinh(theta)
-            if sinh == 0:
+            val = np.cosh(theta)
+            if val == 0:
                 continue
-            sinh = 0.000001 if sinh == 0 else sinh
-            r = a / sinh
+            r = a / val
 
             p = Point2D(a=theta, r=r)
-            print(p)
+            if self.debug:
+                print(p)
             vsk.point(p.x, p.y)
 
     def draw(self, vsk: vsketch.Vsketch) -> None:
