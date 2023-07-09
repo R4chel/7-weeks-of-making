@@ -1,6 +1,6 @@
 import vsketch
 from point2d import Point2D
-from shapely.geometry import Point, LineString
+from shapely.geometry import Point, LineString, MultiPoint
 import numpy as np
 
 
@@ -16,15 +16,17 @@ class Day4Sketch(vsketch.SketchClass):
     precision = vsketch.Param(3)
     num_steps = vsketch.Param(10)
     num_points = vsketch.Param(360)
-    min_a = vsketch.Param(5, decimals=3)
-    max_a = vsketch.Param(20, decimals=3)
+    min_scale = vsketch.Param(1.0, decimals=3)
+    max_scale = vsketch.Param(3.0, decimals=3)
+    min_a = vsketch.Param(0.02, decimals=3)
+    max_a = vsketch.Param(0.5, decimals=3)
     min_cycles = vsketch.Param(1.0, decimals=3)
     max_cycles = vsketch.Param(3.0, decimals=3)
 
     def random_point(self, vsk: vsketch.Vsketch):
         return Point(vsk.random(0, self.width), vsk.random(0, self.height))
 
-    def create_spiral(self, vsk: vsketch.Vsketch):
+    def draw_spiral(self, vsk: vsketch.Vsketch):
         cycles = np.round(vsk.random(self.min_cycles, self.max_cycles),
                           self.precision)
         a = np.round(vsk.random(self.min_a, self.max_a), self.precision)
@@ -34,10 +36,15 @@ class Day4Sketch(vsketch.SketchClass):
         ]
         pts = []
         for theta in thetas:
-            r = a * np.arcsinh(theta)
-            pts.append(Point2D(a=theta, r=r))
-        points = [Point(p.cartesian()) for p in pts]
-        return LineString(points)
+            sinh = np.sinh(theta)
+            if sinh == 0:
+                continue
+            sinh = 0.000001 if sinh == 0 else sinh
+            r = a / sinh
+
+            p = Point2D(a=theta, r=r)
+            print(p)
+            vsk.point(p.x, p.y)
 
     def draw(self, vsk: vsketch.Vsketch) -> None:
         vsk.size(f"{self.height}x{self.width}",
@@ -58,8 +65,10 @@ class Day4Sketch(vsketch.SketchClass):
             vsk.rotate(angle=vsk.random(-360, 360), degrees=True)
 
             vsk.stroke(layer)
-            spiral = self.create_spiral(vsk)
-            vsk.geometry(spiral)
+            vsk.scale(
+                np.round(vsk.random(self.min_scale, self.max_scale),
+                         self.precision))
+            self.draw_spiral(vsk)
             vsk.popMatrix()
 
     def finalize(self, vsk: vsketch.Vsketch) -> None:
