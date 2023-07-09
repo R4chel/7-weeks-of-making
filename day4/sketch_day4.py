@@ -1,5 +1,8 @@
 import vsketch
-from shapely.geometry import Point
+from point2d import Point2D
+from shapely.geometry import Point, LineString
+import numpy as np
+
 
 class Day4Sketch(vsketch.SketchClass):
     # Sketch parameters:
@@ -10,24 +13,54 @@ class Day4Sketch(vsketch.SketchClass):
     landscape = vsketch.Param(True)
     pen_width = vsketch.Param(0.7, decimals=3, min_value=1e-10, unit="mm")
     num_layers = vsketch.Param(1)
-    # radius = vsketch.Param(1.0, decimals=3, unit="in")
+    precision = vsketch.Param(3)
+    num_steps = vsketch.Param(10)
+    num_points = vsketch.Param(360)
+    min_a = vsketch.Param(5, decimals=3)
+    max_a = vsketch.Param(20, decimals=3)
+    min_cycles = vsketch.Param(1.0, decimals=3)
+    max_cycles = vsketch.Param(3.0, decimals=3)
 
     def random_point(self, vsk: vsketch.Vsketch):
         return Point(vsk.random(0, self.width), vsk.random(0, self.height))
 
+    def create_spiral(self, vsk: vsketch.Vsketch):
+        cycles = np.round(vsk.random(self.min_cycles, self.max_cycles),
+                          self.precision)
+        a = np.round(vsk.random(self.min_a, self.max_a), self.precision)
+        thetas = [
+            i * 2 * np.pi / self.num_points
+            for i in np.arange(self.num_points * cycles)
+        ]
+        pts = []
+        for theta in thetas:
+            r = a * np.arcsinh(theta)
+            pts.append(Point2D(a=theta, r=r))
+        points = [Point(p.cartesian()) for p in pts]
+        return LineString(points)
+
     def draw(self, vsk: vsketch.Vsketch) -> None:
-        vsk.size(f"{self.height}x{self.width}", landscape=self.landscape, center=False)
+        vsk.size(f"{self.height}x{self.width}",
+                 landscape=self.landscape,
+                 center=True)
         self.width = self.width - 2 * self.margin
         self.height = self.height - 2 * self.margin
         vsk.translate(self.margin, self.margin)
         vsk.penWidth(f"{self.pen_width}")
 
-        # implement your sketch here
-        # layers = [1 + i for i in range(self.num_layers)]
-        # layer = layers[int(vsk.random(0, len(layers)))]
-        # vsk.stroke(layer)
-        # vsk.fill(layer)
-        # vsk.circle(0, 0, self.radius, mode="radius")
+        layers = [1 + i for i in range(self.num_layers)]
+
+        for _ in range(self.num_steps):
+            layer = layers[int(vsk.random(0, len(layers)))]
+            vsk.pushMatrix()
+            p = self.random_point(vsk)
+            vsk.translate(p.x, p.y)
+            vsk.rotate(angle=vsk.random(-360, 360), degrees=True)
+
+            vsk.stroke(layer)
+            spiral = self.create_spiral(vsk)
+            vsk.geometry(spiral)
+            vsk.popMatrix()
 
     def finalize(self, vsk: vsketch.Vsketch) -> None:
         vsk.vpype("linemerge linesimplify reloop linesort")
