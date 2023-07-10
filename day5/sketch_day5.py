@@ -5,6 +5,21 @@ import numpy as np
 import math
 
 
+def sech(x):
+    val = np.cosh(x)
+    if val == 0:
+        return None
+    return 1 / val
+
+
+fns = {
+    "cosh": np.cosh,
+    "sinh": np.sinh,
+    "sech": sech,
+    "csch": (lambda x: None if np.sinh(x) == 0 else 1 / (np.sinh(x)))
+}
+
+
 class Day5Sketch(vsketch.SketchClass):
     # Sketch parameters:
     debug = vsketch.Param(False)
@@ -23,6 +38,7 @@ class Day5Sketch(vsketch.SketchClass):
     max_cycles = vsketch.Param(3.0, decimals=3, min_value=0)
     max_shapes_at_point = vsketch.Param(4, min_value=1)
     min_degrees_between = vsketch.Param(10, min_value=0, max_value=360)
+    func = vsketch.Param("cosh", choices=fns.keys())
 
     def random_point(self, vsk: vsketch.Vsketch):
         return Point(vsk.random(0, self.width), vsk.random(0, self.height))
@@ -37,10 +53,10 @@ class Day5Sketch(vsketch.SketchClass):
             for i in np.arange(0, self.num_points * cycles)
         ]
         for theta in thetas:
-            val = np.cosh(theta)
-            if val == 0:
+            val = fns[self.func](theta)
+            if val is None:
                 continue
-            r = scale / val
+            r = scale * val
 
             p = Point2D(a=theta, r=r)
             if self.debug:
