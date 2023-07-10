@@ -16,8 +16,8 @@ class Day4Sketch(vsketch.SketchClass):
     precision = vsketch.Param(3)
     num_steps = vsketch.Param(10)
     num_points = vsketch.Param(20)
-    min_scale = vsketch.Param(1.0, decimals=3)
-    max_scale = vsketch.Param(3.0, decimals=3)
+    min_scale = vsketch.Param(10.0, decimals=3)
+    max_scale = vsketch.Param(300.0, decimals=3)
     min_cycles = vsketch.Param(1.0, decimals=3, min_value=0)
     max_cycles = vsketch.Param(3.0, decimals=3, min_value=0)
 
