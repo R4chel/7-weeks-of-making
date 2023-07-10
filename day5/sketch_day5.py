@@ -22,16 +22,16 @@ class Day5Sketch(vsketch.SketchClass):
     min_cycles = vsketch.Param(1.0, decimals=3, min_value=0)
     max_cycles = vsketch.Param(3.0, decimals=3, min_value=0)
     max_shapes_at_point = vsketch.Param(4, min_value=1)
+    min_degrees_between = vsketch.Param(10, min_value=0, max_value=360)
 
     def random_point(self, vsk: vsketch.Vsketch):
         return Point(vsk.random(0, self.width), vsk.random(0, self.height))
 
-    def draw_spiral(self, vsk: vsketch.Vsketch):
+    def draw_spiral(self, vsk: vsketch.Vsketch, direction):
         cycles = np.round(vsk.random(self.min_cycles, self.max_cycles),
                           self.precision)
         scale = np.round(vsk.random(self.min_scale, self.max_scale),
                          self.precision)
-        direction = 1 if vsk.random(0, 1) < 0.5 else -1
         thetas = [
             direction * i * 2 * np.pi / self.num_points
             for i in np.arange(0, self.num_points * cycles)
@@ -58,7 +58,9 @@ class Day5Sketch(vsketch.SketchClass):
 
         # implement your sketch here
         layers = [1 + i for i in range(self.num_layers)]
-
+        max_shapes = math.floor(360 / self.min_degrees_between)
+        if self.max_shapes_at_point > max_shapes:
+            self.max_shapes_at_point = max_shapes
         count = 0
         while count < self.num_shapes:
             vsk.pushMatrix()
@@ -67,12 +69,19 @@ class Day5Sketch(vsketch.SketchClass):
 
             num_shapes_at_point = math.ceil(
                 vsk.random(self.max_shapes_at_point))
-            for _ in range(num_shapes_at_point):
-                vsk.rotate(angle=vsk.random(-360, 360), degrees=True)
+            direction = 1 if vsk.random(0, 1) < 0.5 else -1
+            max_degrees = 360 / num_shapes_at_point
+            for i in range(num_shapes_at_point):
+                if i == 0:
+                    vsk.rotate(angle=vsk.random(0, 360), degrees=True)
+                else:
+                    vsk.rotate(angle=vsk.random(self.min_degrees_between,
+                                                max_degrees),
+                               degrees=True)
 
                 layer = layers[int(vsk.random(0, len(layers)))]
                 vsk.stroke(layer)
-                self.draw_spiral(vsk)
+                self.draw_spiral(vsk, direction)
                 count += 1
             vsk.popMatrix()
 
