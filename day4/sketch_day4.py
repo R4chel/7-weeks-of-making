@@ -30,8 +30,7 @@ class Day4Sketch(vsketch.SketchClass):
         direction = 1 if vsk.random(0, 1) < 0.5 else -1
         thetas = [
             direction * i * 2 * np.pi / self.num_points
-            for i in np.arange(-self.num_points * cycles, self.num_points *
-                               cycles)
+            for i in np.arange(0, self.num_points * cycles)
         ]
         for theta in thetas:
             val = np.cosh(theta)
