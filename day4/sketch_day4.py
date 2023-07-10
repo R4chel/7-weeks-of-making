@@ -18,8 +18,6 @@ class Day4Sketch(vsketch.SketchClass):
     num_points = vsketch.Param(20)
     min_scale = vsketch.Param(1.0, decimals=3)
     max_scale = vsketch.Param(3.0, decimals=3)
-    min_a = vsketch.Param(0.02, decimals=3)
-    max_a = vsketch.Param(0.5, decimals=3)
     min_cycles = vsketch.Param(1.0, decimals=3, min_value=0)
     max_cycles = vsketch.Param(3.0, decimals=3, min_value=0)
 
@@ -29,18 +27,17 @@ class Day4Sketch(vsketch.SketchClass):
     def draw_spiral(self, vsk: vsketch.Vsketch):
         cycles = np.round(vsk.random(self.min_cycles, self.max_cycles),
                           self.precision)
-        a = np.round(vsk.random(self.min_a, self.max_a), self.precision)
         direction = 1 if vsk.random(0, 1) < 0.5 else -1
         thetas = [
             direction * i * 2 * np.pi / self.num_points
-            for i in np.arange(0, self.num_points * cycles)
+            for i in np.arange(-self.num_points * cycles, self.num_points *
+                               cycles)
         ]
-        pts = []
         for theta in thetas:
             val = np.cosh(theta)
             if val == 0:
                 continue
-            r = a / val
+            r = 1 / val
 
             p = Point2D(a=theta, r=r)
             if self.debug:
