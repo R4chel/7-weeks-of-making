@@ -1,5 +1,8 @@
 import vsketch
-from shapely.geometry import Point
+from point2d import Point2D
+from shapely.geometry import Point, LineString, MultiPoint
+import numpy as np
+import math
 
 
 class Day5Sketch(vsketch.SketchClass):
@@ -12,12 +15,13 @@ class Day5Sketch(vsketch.SketchClass):
     pen_width = vsketch.Param(0.7, decimals=3, min_value=1e-10, unit="mm")
     num_layers = vsketch.Param(1)
     precision = vsketch.Param(3)
-    num_steps = vsketch.Param(10)
+    num_shapes = vsketch.Param(10)
     num_points = vsketch.Param(20)
     min_scale = vsketch.Param(10.0, decimals=3)
     max_scale = vsketch.Param(300.0, decimals=3)
     min_cycles = vsketch.Param(1.0, decimals=3, min_value=0)
     max_cycles = vsketch.Param(3.0, decimals=3, min_value=0)
+    max_shapes_at_point = vsketch.Param(4, min_value=1)
 
     def random_point(self, vsk: vsketch.Vsketch):
         return Point(vsk.random(0, self.width), vsk.random(0, self.height))
@@ -25,6 +29,8 @@ class Day5Sketch(vsketch.SketchClass):
     def draw_spiral(self, vsk: vsketch.Vsketch):
         cycles = np.round(vsk.random(self.min_cycles, self.max_cycles),
                           self.precision)
+        scale = np.round(vsk.random(self.min_scale, self.max_scale),
+                         self.precision)
         direction = 1 if vsk.random(0, 1) < 0.5 else -1
         thetas = [
             direction * i * 2 * np.pi / self.num_points
@@ -34,7 +40,7 @@ class Day5Sketch(vsketch.SketchClass):
             val = np.cosh(theta)
             if val == 0:
                 continue
-            r = 1 / val
+            r = scale / val
 
             p = Point2D(a=theta, r=r)
             if self.debug:
@@ -53,18 +59,21 @@ class Day5Sketch(vsketch.SketchClass):
         # implement your sketch here
         layers = [1 + i for i in range(self.num_layers)]
 
-        for _ in range(self.num_steps):
-            layer = layers[int(vsk.random(0, len(layers)))]
+        count = 0
+        while count < self.num_shapes:
             vsk.pushMatrix()
             p = self.random_point(vsk)
             vsk.translate(p.x, p.y)
-            vsk.rotate(angle=vsk.random(-360, 360), degrees=True)
 
-            vsk.stroke(layer)
-            vsk.scale(
-                np.round(vsk.random(self.min_scale, self.max_scale),
-                         self.precision))
-            self.draw_spiral(vsk)
+            num_shapes_at_point = math.ceil(
+                vsk.random(self.max_shapes_at_point))
+            for _ in range(num_shapes_at_point):
+                vsk.rotate(angle=vsk.random(-360, 360), degrees=True)
+
+                layer = layers[int(vsk.random(0, len(layers)))]
+                vsk.stroke(layer)
+                self.draw_spiral(vsk)
+                count += 1
             vsk.popMatrix()
 
     def finalize(self, vsk: vsketch.Vsketch) -> None:
