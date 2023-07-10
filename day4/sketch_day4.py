@@ -15,13 +15,13 @@ class Day4Sketch(vsketch.SketchClass):
     num_layers = vsketch.Param(1)
     precision = vsketch.Param(3)
     num_steps = vsketch.Param(10)
-    num_points = vsketch.Param(360)
+    num_points = vsketch.Param(20)
     min_scale = vsketch.Param(1.0, decimals=3)
     max_scale = vsketch.Param(3.0, decimals=3)
     min_a = vsketch.Param(0.02, decimals=3)
     max_a = vsketch.Param(0.5, decimals=3)
-    min_cycles = vsketch.Param(1.0, decimals=3)
-    max_cycles = vsketch.Param(3.0, decimals=3)
+    min_cycles = vsketch.Param(1.0, decimals=3, min_value=0)
+    max_cycles = vsketch.Param(3.0, decimals=3, min_value=0)
 
     def random_point(self, vsk: vsketch.Vsketch):
         return Point(vsk.random(0, self.width), vsk.random(0, self.height))
@@ -30,9 +30,10 @@ class Day4Sketch(vsketch.SketchClass):
         cycles = np.round(vsk.random(self.min_cycles, self.max_cycles),
                           self.precision)
         a = np.round(vsk.random(self.min_a, self.max_a), self.precision)
+        direction = 1 if vsk.random(0, 1) < 0.5 else -1
         thetas = [
-            i * 2 * np.pi / self.num_points
-            for i in np.arange(self.num_points * cycles)
+            direction * i * 2 * np.pi / self.num_points
+            for i in np.arange(0, self.num_points * cycles)
         ]
         pts = []
         for theta in thetas:
