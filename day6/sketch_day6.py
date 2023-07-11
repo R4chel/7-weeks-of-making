@@ -1,5 +1,7 @@
 import vsketch
-from shapely.geometry import Point
+from point2d import Point2D
+from shapely.geometry import Point, LineString, MultiPoint
+import numpy as np
 
 
 class Day6Sketch(vsketch.SketchClass):
@@ -18,6 +20,8 @@ class Day6Sketch(vsketch.SketchClass):
     max_scale = vsketch.Param(300.0, decimals=3)
     min_cycles = vsketch.Param(1.0, decimals=3, min_value=0)
     max_cycles = vsketch.Param(3.0, decimals=3, min_value=0)
+    nu = vsketch.Param(0.2, decimals=3)
+    connect = vsketch.Param(True)
 
     def random_point(self, vsk: vsketch.Vsketch):
         return Point(vsk.random(0, self.width), vsk.random(0, self.height))
@@ -25,21 +29,27 @@ class Day6Sketch(vsketch.SketchClass):
     def draw_spiral(self, vsk: vsketch.Vsketch):
         cycles = np.round(vsk.random(self.min_cycles, self.max_cycles),
                           self.precision)
-        direction = 1 if vsk.random(0, 1) < 0.5 else -1
+        if self.debug:
+            print(cycles)
         thetas = [
-            direction * i * 2 * np.pi / self.num_points
+            i * 2 * np.pi / self.num_points
             for i in np.arange(0, self.num_points * cycles)
         ]
+        pts = []
         for theta in thetas:
-            val = np.cosh(theta)
+            val = np.cosh(self.nu * theta)
             if val == 0:
                 continue
             r = 1 / val
 
             p = Point2D(a=theta, r=r)
-            if self.debug:
-                print(p)
-            vsk.point(p.x, p.y)
+            pts.append(p)
+        if self.connect:
+            shape = LineString([Point(p.cartesian()) for p in pts])
+            vsk.geometry(shape)
+        else:
+            for p in pts:
+                vsk.point(p.x, p.y)
 
     def draw(self, vsk: vsketch.Vsketch) -> None:
         vsk.size(f"{self.height}x{self.width}",
