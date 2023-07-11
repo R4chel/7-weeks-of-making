@@ -23,6 +23,7 @@ fns = {
 class Day5Sketch(vsketch.SketchClass):
     # Sketch parameters:
     debug = vsketch.Param(False)
+    center = vsketch.Param(True)
     width = vsketch.Param(5., decimals=2, unit="in")
     height = vsketch.Param(3., decimals=2, unit="in")
     margin = vsketch.Param(0.1, decimals=3, unit="in")
@@ -66,7 +67,7 @@ class Day5Sketch(vsketch.SketchClass):
     def draw(self, vsk: vsketch.Vsketch) -> None:
         vsk.size(f"{self.height}x{self.width}",
                  landscape=self.landscape,
-                 center=True)
+                 center=self.center)
         self.width = self.width - 2 * self.margin
         self.height = self.height - 2 * self.margin
         vsk.translate(self.margin, self.margin)
